@@ -1,0 +1,48 @@
+version: "3"
+
+
+services:
+
+  lep:
+    container_name: t2.lep
+    build:
+      context: ./lep
+      args:
+        - USER_ID=${USER_ID}
+        - GROUP_ID=${GROUP_ID}
+    links:
+        - mariadb:mariadb
+    tty: true
+    volumes:
+      - ./lep/nginx/nginx.conf:/etc/nginx/nginx.conf:rw
+      - ./lep/php-fpm/8.1/www.conf:/etc/php/8.1/fpm/pool.d/www.conf:rw
+      - ./lep/nginx/logs:/var/log/nginx:rw
+      - ./lep/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf:rw
+      - ./lep/cron/laravel:/etc/cron.d/laravel:rw
+      - ./lep/nginx/sites:/etc/nginx/sites-enabled:rw
+      - /c/Users/trand/Workspace/Projects:/var/www/Projects // need to edit
+    ports:
+      - ${HTTP_PORT}:80
+    restart: always
+
+  mariadb:
+    container_name: t2.mariadb
+    build:
+      context: ./mariadb
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PWD}
+    restart: always
+    volumes:
+      - ./data/mysql:/var/lib/mysql:rw
+      - ./data/shared:/var/shared:rw
+    ports:
+      - ${MYSQL_PORT}:3306
+
+  redis:
+    build: ./redis
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - "${REDIS_PORT}:6379"

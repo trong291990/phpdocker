@@ -1,0 +1,11 @@
+.env
+.idea
+.DS_Store
+data/mysql/*
+data/redis/*
+data/postgres/*
+data/mongodb/*
+lep/nginx/logs/*
+lep/supervisor/log/*
+/docker-compose.yml
+/gitconfig
