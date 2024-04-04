@@ -51,14 +51,10 @@ Ví dụn muốn setup 1 file mới - dùng laravel:
 ```
 - Mount tư mục web vào nginx:
 
-Mở file docker-compose.yml, trong service lep, phần volum, hãy thêm đoạn này:e
+Mở file docker-compose.yml, trong service lep, phần volum, hãy thêm đoạn này: (nếu đang sử dụng wsl thì tham khảo mục dưới cùng)
 ```
-      - FULLPATH_CUA_THU_MUC_LARAVEL:/var/www/sites/mysite:rw
+      - FULLPATH_CUA_THU_MUC_LARAVEL:/var/www/Projects:rw
 ```
-
-### Hướng dẫn riêng với Docker trên windows, sử dụng WSL2,không dùng docker desktop
-- Tạo thư mục dự án bên trong wsl2
-![Projects in WSL](./img.png)
 
 Tạo thêm một file có tên là mysite.conf trong thư mục lep/nginx/sites có nội dung sau:
 
@@ -94,3 +90,13 @@ Nếu sử dụng php7.4, thì thay
 - Restart lại service lep: docker-compose restart lep
 
 - Vào trình duyệt gõ http://mysite.local:9090
+
+### Hướng dẫn riêng với Docker trên windows, sử dụng WSL2,không dùng docker desktop
+- Tạo thư mục dự án bên trong wsl2
+  ![Projects in WSL](./img.png)
+
+
+- Sửa thư mục cần mount với `/var/www/Projects`:
+```yaml
+- /home/dinhtrong/Projects:/var/www/Projects
+```
