@@ -33,7 +33,11 @@
 
 ## Database
 - Khi import file Data (SQL) có dung lượng lớn, hãy copy vào thư mục data/shared (được mount vào /var/shared ở container mariadb) và dùng command line để import
-
+- Khi setup biến môi trường cho ứng dụng php, ví dụ file .env của dự án Laravel, hãy chú ý
+```env
+DB_HOST=mariadb # không phải là localhost
+DB_PORT=3306 # không phải là 33069
+```
 ## Setup một site mới
 
 Ví dụn muốn setup 1 file mới - dùng laravel:
@@ -51,6 +55,10 @@ Mở file docker-compose.yml, trong service lep, phần volum, hãy thêm đoạ
 ```
       - FULLPATH_CUA_THU_MUC_LARAVEL:/var/www/sites/mysite:rw
 ```
+
+### Hướng dẫn riêng với Docker trên windows, sử dụng WSL2,không dùng docker desktop
+- Tạo thư mục dự án bên trong wsl2
+![Projects in WSL](./img.png)
 
 Tạo thêm một file có tên là mysite.conf trong thư mục lep/nginx/sites có nội dung sau:
 
