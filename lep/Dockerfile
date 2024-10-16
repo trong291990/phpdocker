@@ -1,74 +1,108 @@
-FROM ubuntu:22.04
-
+FROM alpine:3.18
 
 ARG TZ=Asia/Tokyo
 ARG USER_ID=501
 ARG GROUP_ID=20
-ENV USER_ID ${USER_ID}
-ENV GROUP_ID ${GROUP_ID}
-
-ENV TERM=xterm \
+ENV USER_ID=${USER_ID} \
+    GROUP_ID=${GROUP_ID} \
+    TERM=xterm \
     TZ=Asia/Tokyo \
-    DEBIAN_FRONTEND=noninteractive
+    ALPINE_FRONTEND=noninteractive
 
+RUN apk update && \
+    apk add --no-cache \
+    tzdata \
+    nginx \
+    supervisor \
+    curl \
+    git \
+    zip \
+    unzip \
+    wget \
+    nano \
+    libreoffice \
+    php82 \
+    php82-bcmath \
+    php82-bz2 \
+    php82-calendar \
+    php82-ctype \
+    php82-curl \
+    php82-dom \
+    php82-fpm \
+    php82-gd \
+    php82-gettext \
+    php82-iconv \
+    php82-intl \
+    php82-mbstring \
+    php82-mysqli \
+    php82-mysqlnd \
+    php82-opcache \
+    php82-pdo \
+    php82-pdo_mysql \
+    php82-pdo_pgsql \
+    php82-pdo_sqlite \
+    php82-pgsql \
+    php82-phar \
+    php82-session \
+    php82-simplexml \
+    php82-sqlite3 \
+    php82-tokenizer \
+    php82-xml \
+    php82-xmlwriter \
+    php82-zip \
+    php82-zlib
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# Set timezone
+RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    echo ${TZ} > /etc/timezone
 
-RUN apt-get update --fix-missing  && \
-    apt-get install -y software-properties-common
-
-RUN add-apt-repository ppa:ondrej/php
-RUN apt-get update
-
-# Install apps mysql-server
-RUN apt-get -y install python3-pip  supervisor nginx curl git cron  zip unzip curl wget nano  \
-    php8.1-cli php8.1-common php8.1-mysql php8.1-zip php8.1-gd php8.1-mbstring php8.1-curl php8.1-xml php8.1-fpm php8.1-bcmath \
-    php7.4-cli php7.4-common php7.4-mysql php7.4-zip php7.4-gd php7.4-mbstring php7.4-curl php7.4-xml php7.4-fpm php7.4-bcmath php7.4-imagic php7.4-intl
-
-# Python package
-
-RUN apt-get -y install php8.1-pgsql php7.4-pgsql
-
-# PHP-FPM
+# Config PHP
+RUN ln -s /usr/bin/php82 /usr/bin/php
 RUN mkdir /run/php
-COPY php-fpm/8.1/www.conf /etc/php/8.1/fpm/pool.d/www.conf
-COPY php-fpm/8.1/php.ini /etc/php/8.1/fpm/php.ini
+COPY php-fpm/8.2/www.conf /etc/php82/php-fpm.d/www.conf
+COPY php-fpm/8.2/php.ini /etc/php82/php.ini
 
-COPY php-fpm/7.4/www.conf /etc/php/7.4/fpm/pool.d/www.conf
-COPY php-fpm/7.4/php.ini /etc/php/7.4/fpm/php.ini
+# Configure Nginx
+RUN if ! getent group www-data > /dev/null 2>&1; then \
+    addgroup -S www-data; \
+fi && \
+if ! getent passwd www-data > /dev/null 2>&1; then \
+    adduser -S -D -H -G www-data www-data; \
+fi
+RUN mkdir -p /run/nginx && chown www-data:www-data /run/nginx
+RUN mkdir -p /var/www/html && echo "<?php phpinfo();" > /var/www/html/info.php
+RUN echo "<h1>Nginx Works!</h1><a href='info.php'>PHP Info</a>" > /var/www/html/index.html
 
-#  Nginx
-RUN mkdir -p /var/www/html && echo "<?php phpinfo();" > /var/www/html/index.php
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
-RUN rm /etc/nginx/sites-enabled/default
 COPY nginx/sites /etc/nginx/sites-enabled
 
 # Cronjob
 COPY cron/laravel /etc/cron.d/laravel
-RUN chmod 0644 /etc/cron.d/laravel
-RUN crontab /etc/cron.d/laravel
+RUN chmod 0644 /etc/cron.d/laravel && \
+    crontab /etc/cron.d/laravel
 
 # Supervisor
-COPY supervisor/supervisord.conf /etc/supervisor/supervisord.conf
-
+RUN mkdir -p /var/log/supervisor
+COPY supervisor/supervisord.conf /etc/supervisord.conf
 
 # Composer
-RUN curl -sS https://getcomposer.org/installer -o composer-setup.php
-RUN php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+RUN curl -sS https://getcomposer.org/installer | php82 -- --install-dir=/usr/local/bin --filename=composer
 
 # Adminer
 RUN mkdir /usr/share/adminer
 COPY vendor/adminer-4.8.1.php /usr/share/adminer/index.php
 
+RUN apk add php82-fileinfo php82-xmlreader
+
 # Clean up
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    rm /var/log/lastlog /var/log/faillog
+RUN rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
-
+# Copy startup script
 COPY ./docker-run.sh /docker-run.sh
+RUN chmod +x /docker-run.sh
 
-ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
+ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"]
 
+WORKDIR /var/www/Workspace
 
 EXPOSE 80 443 6379 3306

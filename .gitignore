@@ -1,11 +1,12 @@
 .env
 .idea
 .DS_Store
-data/mysql/*
+data/mysql8/*
+data/shared/*
 data/redis/*
 data/postgres/*
 data/mongodb/*
 lep/nginx/logs/*
-lep/supervisor/log/*
+lep/supervisor/logs/*
 /docker-compose.yml
 /gitconfig

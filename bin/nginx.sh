@@ -1,2 +1,2 @@
-cd /c/Users/trand/Workspace/docker
-docker-compose exec lep supervisorctl restart nginx
+cd /home/dinhtrong/DockerDemo/phpdocker
+docker compose exec lep supervisorctl restart nginx

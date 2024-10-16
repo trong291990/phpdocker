@@ -1,2 +1,2 @@
 cd /home/dinhtrong/DockerDemo/phpdocker
-docker compose exec lep bash
+docker compose exec mysql bash
