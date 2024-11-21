@@ -1,1 +1,1 @@
-#* * * * * echo 100 >> /var/www/a.txt
+* * * * * echo 100 >> /var/www/a.txt

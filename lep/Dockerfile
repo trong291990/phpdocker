@@ -50,7 +50,8 @@ RUN apk update && \
     php82-xml \
     php82-xmlwriter \
     php82-zip \
-    php82-zlib
+    php82-zlib \
+    sysbench
 
 # Set timezone
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
