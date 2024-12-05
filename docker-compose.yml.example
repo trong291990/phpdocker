@@ -4,7 +4,6 @@ version: "3"
 services:
 
   lep:
-    container_name: t2.lep
     build:
       context: ./lep
       args:
@@ -25,20 +24,6 @@ services:
       - ${HTTP_PORT}:80
     restart: always
 
-  mariadb:
-    container_name: t2.mariadb
-    build:
-      context: ./mariadb
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PWD}
-    restart: always
-    volumes:
-      - ./data/mysql:/var/lib/mysql:rw
-      - ./data/shared:/var/shared:rw
-    ports:
-      - ${MYSQL_PORT}:3306
-
   redis:
     build: ./redis
     restart: always
@@ -46,3 +31,38 @@ services:
       - ./data/redis:/data
     ports:
       - "${REDIS_PORT}:6379"
+
+  mysql:
+    image: mysql:8.2
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PWD}
+    volumes:
+      - ./data/mysql8:/var/lib/mysql:rw
+      - ./data/shared:/var/shared:rw
+    ports:
+      - ${MYSQL_PORT}:3306
+    networks:
+      - phpdocker_network
+
+  postgres:
+    restart: always
+    build:
+      context: ./postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      - POSTGRES_DB=default
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PWD}
+    networks:
+      - phpdocker_network
+
+volumes:
+  postgres_data:
+
+networks:
+  phpdocker_network:
+    driver: bridge
